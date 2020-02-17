@@ -7,7 +7,7 @@ export const PROJECT_ACTIONS = {
 
 export const getProjects = () => {
 	return (dispatch) => {
-		return window.axios.get('/projects')
+		return window.axios.get('https://nus-react-demo-backend.herokuapp.com/v1/projects')
     .then(response => {
     	const data = response.data;
     	// this.setState({
