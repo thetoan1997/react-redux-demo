@@ -1,92 +1,90 @@
 import React from 'react';
 import { Formik } from 'formik';
+import ProjectForm from './ProjectForm';
+import {updateProject, 
+        getProject} from './actions/projects';
+import {connect} from 'react-redux'
+import {withRouter} from 'react-router'
 
-class ProjectEdit extends React.Component{
+
+class CProjectEdit extends React.Component{
 	constructor(props){
 		super(props)
-		this.state = {data: '', id: props.id}
+		this.state = {project: {}, note: ''}
 	}
 
   componentDidMount(){
+    // debugger;
     console.log("mmmm");
-    console.log(this);
-    console.log(this.state);
-		window.axios.get(`projects/${this.state.id}`)
-	  .then(response => {
-	  	const data = response.data;
-	  	this.setState({
-	  		data: data
-	  	});
-	  })
+    let prjId = this.props.match.params.id;
+    console.log(prjId);
+    this.props.getProject(prjId)
+    .then(res => {
+      console.log("BY GET PROJECT");
+      console.log(res);
+    })
   }
 
-  handleSubmit(){
-  	debugger;
-		alert('XXX');
-	}
+  static getDerivedStateFromProps(nextProps, state){
+    let newState = {...state}
+    // debugger
+    nextProps.data && (newState.project = nextProps.data)
+    newState.note = nextProps.note
+    return newState
+  }
+
+  onSubmit(project){
+    console.log("in on submit");
+    console.log(project);
+    console.log(this);
+    return this.props.updateProject(project).then(success => {
+      console.log(success);
+    })
+  }
 
   render(){
+    if(this.props.data.length === 0)
+      return(
+        <div>
+          <h1>Still Empty</h1>
+        </div>
+      );
+
+
+    console.log('......v....');
+    console.log(this);
+    console.log(this.props.data);
+
     return(
       <div>
-        <h1>Project Edit</h1>
-        <ProjectForm project={this.state} />
+        <h1>PROJECT EDIT</h1>
+        {console.log("llllllloo")}
+        {console.log(this.state)}
+        {
+          this.state.note === 'after get project' ?
+          <ProjectForm 
+            onSubmit={this.onSubmit.bind(this)} 
+            project={this.state.project}/> : 
+          <p>loading</p>
+        }
       </div>
     );
   }
 }
 
-function ProjectForm(props){
-	console.log('edit');
-	let project = props.project.data;
-	if(project.length === 0)
-		return(
-			<div></div>
-		);
+const mapStoreToProps = (store) => ({
+  data: store.projects.data,
+  note: store.projects.note
+})
 
-	return(
-		<Formik
-			initialValues={{ name: project.name}}
-      onSubmit={(values, actions) => {
-      	project.name = values.name;
-      	window.axios.put(`projects/${project.id}`, {project: project})
-			  .then(response => {
-			  	if(response.status === 200)
-			  		console.log("OKKK");
-			  })
-        // setTimeout(() => {
-        //   alert(JSON.stringify(values, null, 2));
-        //   actions.setSubmitting(false);
-        // }, 1000);
-      }}
-		>
-			{props => (
-        <form onSubmit={props.handleSubmit}>
-          <input
-            type="text"
-            onChange={props.handleChange}
-            onBlur={props.handleBlur}
-            value={props.values.name}
-            name="name"
-          />
-          {props.errors.name && <div id="feedback">{props.errors.name}</div>}
-          <button type="submit">Submit</button>
-        </form>
-      )}
-		</Formik>
-	);
+const mapDispatchToProps = {
+  updateProject,
+  getProject
 }
 
-// const mapStoreToProps = (store) => ({
-//   data: store.projects.data
-// })
-
-// const mapDispatchToProps = {
-//   updateProject
-// }
-
-// const ProjectEdit = connect(
-//   null,
-//   mapDispatchToProps
-// )(ProjectEdit)
+const ProjectEdit = connect(
+  mapStoreToProps,
+  mapDispatchToProps
+)(CProjectEdit)
 
 export default ProjectEdit
